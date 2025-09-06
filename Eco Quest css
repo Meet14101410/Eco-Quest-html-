@@ -1,0 +1,40 @@
+:root {
+  --bg:#dff3e3; --card:#fff; --accent:#2b9348;
+}
+
+body {
+  margin:0; font-family:system-ui,Segoe UI,Roboto;
+  display:flex; justify-content:center; align-items:center;
+  height:100vh; background:linear-gradient(180deg,var(--bg),#bfe9c6);
+}
+
+.game {
+  width:360px; background:var(--card); border-radius:12px;
+  padding:12px; text-align:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.12);
+}
+
+#playfield {
+  position:relative; height:300px; margin:10px 0;
+  background:linear-gradient(#eaf7ee,#d7efd9);
+  border-radius:8px; overflow:hidden;
+}
+
+.item {
+  position:absolute; width:48px; height:48px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; cursor:pointer; user-select:none;
+}
+
+.trash { transform:translate(-50%,-50%); }
+.bug { transform:translate(-50%,-50%); filter:drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+
+.hud { display:flex; justify-content:space-between; gap:8px; }
+
+button {
+  background:var(--accent); color:#fff; border:0;
+  padding:6px 12px; border-radius:8px;
+  font-weight:600; cursor:pointer;
+}
+
+small { opacity:.7; }
