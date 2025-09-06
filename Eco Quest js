@@ -1,0 +1,52 @@
+const play = document.getElementById('playfield');
+const start = document.getElementById('start');
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+
+let score = 0, time = 30, timer, spawner;
+const trash = ['🗑️','🍂','🥤','🧴'], bugs = ['🐛','🪲'];
+
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function spawn(kind){
+  const el = document.createElement('div');
+  el.className = 'item ' + kind;
+  el.style.left = rand(10,90)+'%';
+  el.style.top = rand(10,90)+'%';
+  el.textContent = kind==='trash' ? trash[rand(0,trash.length-1)] : bugs[rand(0,bugs.length-1)];
+  el.onclick = () => {
+    if(kind==='trash') score+=10; else score=Math.max(0,score-5);
+    scoreEl.textContent = score; el.remove();
+    if(score>=50) win();
+  };
+  play.appendChild(el);
+  setTimeout(()=>el.remove(),2500);
+}
+
+function tick(){
+  time--; timeEl.textContent = time;
+  if(time<=0) end();
+}
+
+function startGame(){
+  score=0; time=30; scoreEl.textContent=0; timeEl.textContent=time;
+  play.innerHTML=''; start.disabled=true;
+  timer=setInterval(tick,1000);
+  spawner=setInterval(()=>{
+    spawn('trash');
+    if(Math.random()<.4) spawn('trash');
+    if(Math.random()<.3) spawn('bug');
+  },700);
+}
+
+function end(){
+  clearInterval(timer); clearInterval(spawner); start.disabled=false;
+  play.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%">Game Over<br>Score:${score}</div>`;
+}
+
+function win(){
+  clearInterval(timer); clearInterval(spawner); start.disabled=false;
+  play.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%">You Win! 🌳<br>Score:${score}</div>`;
+}
+
+start.onclick = startGame;
