@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Eco Quest — Short</title>
+<style>
+  :root{--bg:#dff3e3;--card:#fff;--accent:#2b9348}
+  body{font-family:system-ui,Segoe UI,Roboto;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:linear-gradient(180deg,var(--bg),#bfe9c6)}
+  .game{width:360px;background:var(--card);border-radius:12px;padding:12px;box-shadow:0 8px 20px rgba(0,0,0,.12);text-align:center}
+  #playfield{position:relative;height:300px;background:linear-gradient(#eaf7ee,#d7efd9);border-radius:8px;overflow:hidden;margin:10px 0}
+  .item{position:absolute;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;user-select:none}
+  .trash{transform:translate(-50%,-50%)} .bug{transform:translate(-50%,-50%) filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+  .hud{display:flex;justify-content:space-between;gap:8px}
+  button{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:8px;font-weight:600;cursor:pointer}
+  small{opacity:.7}
+</style>
+</head>
+<body>
+  <div class="game" role="application" aria-label="Eco Quest">
+    <h3>Eco Quest ♻️</h3>
+    <div class="hud">
+      <div>Score: <span id="score">0</span></div>
+      <div>Time: <span id="time">30</span>s</div>
+      <button id="start">Start</button>
+    </div>
+    <div id="playfield" aria-live="polite"></div>
+    <p style="margin:8px 0;"><small>Click trash to collect (+10). Avoid bugs (-5). Collect 50 points to win!</small></p>
+  </div>
+
+<script>
+(() => {
+  const play = document.getElementById('playfield'), start = document.getElementById('start');
+  const scoreEl = document.getElementById('score'), timeEl = document.getElementById('time');
+  let score=0, timeLeft=30, timer=null, spawnI=null;
+  const emojis = {trash:['🗑️','🍂','🥤','🧴'], bug:['🐛','🪲']};
+
+  function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function spawnItem(kind){
+    const el = document.createElement('div');
+    el.className = 'item '+(kind==='trash'?'trash':'bug');
+    el.style.left = rand(10,90)+'%';
+    el.style.top = rand(10,90)+'%';
+    el.textContent = emojis[kind][rand(0,emojis[kind].length-1)];
+    el.dataset.kind = kind;
+    el.addEventListener('click', onClick);
+    play.appendChild(el);
+    // remove after a while
+    setTimeout(()=> el.remove(), 2500);
+  }
+
+  function onClick(e){
+    const k = e.currentTarget.dataset.kind;
+    if(k==='trash'){ score+=10; flash('+10'); }
+    else { score = Math.max(0, score-5); flash('-5'); }
+    scoreEl.textContent = score;
+    e.currentTarget.remove();
+    checkWin();
+  }
+
+  function flash(text){
+    const f = document.createElement('div');
+    f.textContent = text;
+    f.style.position='absolute';
+    f.style.left='50%'; f.style.top='8px';
+    f.style.transform='translateX(-50%)';
+    f.style.background='rgba(0,0,0,.6)'; f.style.color='#fff';
+    f.style.padding='6px 8px'; f.style.borderRadius='6px'; f.style.fontWeight=700;
+    document.querySelector('.game').appendChild(f);
+    setTimeout(()=>f.remove(),700);
+  }
+
+  function tick(){
+    timeLeft--; timeEl.textContent = timeLeft;
+    if(timeLeft<=0) endGame();
+  }
+
+  function startGame(){
+    score=0; timeLeft=30; scoreEl.textContent=0; timeEl.textContent=timeLeft;
+    play.innerHTML=''; start.disabled=true;
+    timer = setInterval(tick,1000);
+    spawnI = setInterval(()=>{
+      // spawn trash more often early, bugs sometimes
+      spawnItem('trash');
+      if(Math.random()<0.4) spawnItem('trash');
+      if(Math.random()<0.25 + Math.min(0.3, score/200)) spawnItem('bug');
+    },700);
+  }
+
+  function endGame(){
+    clearInterval(timer); clearInterval(spawnI); start.disabled=false;
+    play.innerHTML = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+      <strong style="font-size:18px;margin-bottom:6px">Time's up!</strong>
+      <div>Score: ${score}</div>
+      <div style="margin-top:8px">${score>=50? 'You saved the park! 🎉' : 'Try again to reach 50 points.'}</div>
+    </div>`;
+  }
+
+  function checkWin(){
+    if(score>=50){
+      clearInterval(timer); clearInterval(spawnI); start.disabled=false;
+      play.innerHTML = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+        <strong style="font-size:18px;margin-bottom:6px">You Win! 🌳</strong>
+        <div>Final Score: ${score}</div>
+      </div>`;
+    }
+  }
+
+  start.addEventListener('click', startGame);
+})();
+</script>
+</body>
+</html>
